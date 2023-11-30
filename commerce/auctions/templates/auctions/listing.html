@@ -1,0 +1,78 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="card">
+    <div class="card-header">
+      <h3>Listing : {{lists.title}}</h3>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">
+            <div class="card" style="width: 25rem;">
+                <img src="{{ lists.image }}" class="card-img-top" alt="{{lists.title}}">
+            </div>
+        </h5>
+        {% if lists.current_bid %}
+            <h4 class="card-text">{{lists.current_bid}}.00$</h4>
+        {% else %}
+            <h4 class="card-text">{{lists.starting_bid}}.00$</h4>
+        {% endif %}
+        {% if lists.completed == False %}
+            <form action="{% url 'listing' lists.id %}" method="post">
+                {% csrf_token %}
+                {{form}}
+                <input type="submit" value="Place Bid"class="btn btn-primary">
+            </form>
+            {% if message %}
+                {{message}}
+            {% endif %}
+            {% if request.user == lists.user %}
+                <a href="{% url 'close_bid' lists.id %}"><button type="button" class="btn btn-danger">Close Auction</button></a>
+            {% else %}
+            <div class="my_btn">
+                <a href="{% url 'add_watchlist' lists.id %}"><button type="button" class="btn btn-primary">Add to watchlist</button></a>
+                <a href="{% url 'remove_watchlist' lists.id %}"><button type="button" class="btn btn-danger">Remove from watchlist</button></a>
+            </div>
+            {% endif %}
+        {% endif %}
+        {% if lists.completed == True %}
+            <h5>Auction is now closed!</h5>
+            {% if request.user == lists.winner %}
+                <h6>You have won the auction</h6>
+            {% endif %}
+            <form action="" >
+                {% csrf_token %}
+                {{form}}
+                <button disabled class="btn btn-secondary">Place Bid</button>
+            </form>
+        {% endif %}
+        <br>
+        <h5>DETAILS:</h5>
+        <ul>
+            <li>Listed by:  {{lists.user}} </li>
+            {% if lists.category %}
+                <li>Catgeory: {{lists.category}}</li>
+            {% else %}
+                <li>Catgeory: No Category Listed</li>
+            {% endif %}
+            <li> Description: {{lists.description}}</li>
+        </ul>
+    </div>
+    </div>
+    {% for comment in comments %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">{{comment.user}}</h5>
+                {{comment.time_created}}
+            </div>
+            <div class="card-body">
+            <p class="card-text">{{comment.text}}</p>
+            </div>
+        </div>
+    {% endfor %}
+
+    <form action="{% url 'comment' lists.id %}" method="post">
+        {% csrf_token %}
+        {{ comment_form }}
+        <input type="submit" value="Post"class="btn btn-primary">
+    </form>
+{% endblock %}
